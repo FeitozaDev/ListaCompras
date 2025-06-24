@@ -34,7 +34,7 @@
       padding: 0;
       margin: 0;
       font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(120deg, #f3f6ff 0%, #eaf3ff 100%);
+      background-image: url('1978201.jpg');
       min-height: 100vh;
       color: #2d2f3a;
       width: 100%;
@@ -362,176 +362,261 @@
   <div id="total">Total: R$ 0,00</div>
   <button id="finalizar">Finalizar Compra 🧾</button>
 
-  <script>
-    const categorias = {
-      "Mercearia": ["Arroz", "Feijão", "Óleo", "Açúcar", "Café", "Molho de tomate", "Macarrão", "Milho", "Tapioca", "Ketchup", "Maionese", "Cuscuz", ""],
-      "Proteínas": ["Peito de Frango", "Sobrecoxa", "Moela", "Coração", "Músculo", "Coxão Mole", "Patinho", "File Suino", "Lombo Suino", "Sardinha"],
-      "Laticínios": ["Leite", "Manteiga Light", "Iogurte", "Queijo", "Requeijão Light", "Creme de leite", "Leite Condensado"],
-      "Higiene": ["Barbeador", "Creme dental", "Desodorante", "Escova de dente", "Fio dental", "Papel higiênico", "Sabonete", "Shampoo", "Cotonete"],
-      "Limpeza": ["Água Sanitária", "Álcool", "Amaciante", "Desinfetante", "Detergente", "Esponja de pia", "Sabão em pó", "Sacos de lixo"],
-      "Frutas": ["Morango", "Uva", "Kiwi", "Abacaxi", "Melancia", "Pera", "Banana", "Maçã", "Ameixa", "Laranja", "Manga", "Mamão", "Melão"],
-      "Legumes": ["Alface", "Batata", "Cebola", "Cenoura", "Tomate", "Brocolis", "Abobrinha", "Batata Doce", "Pimentão", "Alho"]
-    };
+ <script>
+  // Agora, não há nomes de itens fixos. O usuário pode adicionar e nomear itens.
+  // Categorias são apenas sugestões para organizar, mas os itens são criados pelo usuário.
 
-    const container = document.getElementById("catalogo-container");
-    const totalDisplay = document.getElementById("total");
-    const savedState = JSON.parse(localStorage.getItem("listaCompras")) || {};
+  const categorias = [
+    "Mercearia", "Proteínas", "Laticínios", "Higiene", "Limpeza", "Frutas", "Legumes"
+  ];
 
-    function formatarValor(numero) {
-      return numero.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      });
-    }
+  const container = document.getElementById("catalogo-container");
+  const totalDisplay = document.getElementById("total");
+  // Estado salvo por categoria, array de itens
+  const savedState = JSON.parse(localStorage.getItem("listaCompras2")) || {};
 
-    function atualizarTotal() {
-      let total = 0;
-      for (const item in savedState) {
-        if (savedState[item].checked) {
-          let rawValor = savedState[item].valor?.toString().replace(",", ".") || "0";
+  function formatarValor(numero) {
+    return numero.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+  }
+
+  function atualizarTotal() {
+    let total = 0;
+    for (const cat in savedState) {
+      savedState[cat].forEach(item => {
+        if (item.checked) {
+          let rawValor = item.valor?.toString().replace(",", ".") || "0";
           let valor = parseFloat(rawValor);
-          let quantidade = parseFloat(savedState[item].quantidade) || 1;
+          let quantidade = parseFloat(item.quantidade) || 1;
           if (!isNaN(valor) && !isNaN(quantidade) && quantidade > 0) {
             total += valor * quantidade;
           }
         }
-      }
-      totalDisplay.textContent = `Total: ${formatarValor(total)}`;
-      destacarCategorias();
-    }
-
-    function destacarCategorias() {
-      document.querySelectorAll(".categoria-card").forEach(card => {
-        const checkboxes = card.querySelectorAll("input[type='checkbox']");
-        const algumMarcado = Array.from(checkboxes).some(cb => cb.checked);
-        card.classList.toggle("selected", algumMarcado);
       });
     }
+    totalDisplay.textContent = `Total: ${formatarValor(total)}`;
+    destacarCategorias();
+  }
 
-    function montarCatalogo() {
-      container.innerHTML = '';
-      for (let categoria in categorias) {
-        const card = document.createElement("div");
-        card.className = "categoria-card";
+  function destacarCategorias() {
+    document.querySelectorAll(".categoria-card").forEach(card => {
+      const checkboxes = card.querySelectorAll("input[type='checkbox']");
+      const algumMarcado = Array.from(checkboxes).some(cb => cb.checked);
+      card.classList.toggle("selected", algumMarcado);
+    });
+  }
 
-        // Título da categoria
-        const h2 = document.createElement("div");
-        h2.className = "categoria-title";
-        h2.textContent = categoria;
-        card.appendChild(h2);
+  function montarCatalogo() {
+    container.innerHTML = '';
+    categorias.forEach(categoria => {
+      const card = document.createElement("div");
+      card.className = "categoria-card";
 
-        // Lista de itens
-        const lista = document.createElement("ul");
-        lista.className = "itens-lista";
+      // Título da categoria
+      const h2 = document.createElement("div");
+      h2.className = "categoria-title";
+      h2.textContent = categoria;
+      card.appendChild(h2);
 
-        categorias[categoria].forEach(item => {
-          if (!item) return;
+      // Botão adicionar item
+      const btnAdd = document.createElement("button");
+      btnAdd.textContent = "+ Adicionar item";
+      btnAdd.style.margin = "12px auto 8px auto";
+      btnAdd.style.padding = "6px 18px";
+      btnAdd.style.borderRadius = "12px";
+      btnAdd.style.border = "1px solid var(--primary)";
+      btnAdd.style.background = "#fff";
+      btnAdd.style.color = "var(--primary)";
+      btnAdd.style.fontWeight = "600";
+      btnAdd.style.cursor = "pointer";
+      btnAdd.style.fontSize = "1rem";
+      btnAdd.addEventListener("click", () => {
+        adicionarItem(categoria, "");
+      });
+      card.appendChild(btnAdd);
 
-          const li = document.createElement("li");
-          li.className = "item-catalogo";
+      // Lista de itens
+      const lista = document.createElement("ul");
+      lista.className = "itens-lista";
 
-          // Bloco nome/checkbox
-          const itemNomeCheck = document.createElement("div");
-          itemNomeCheck.className = "item-check-nome";
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = savedState[item]?.checked || false;
-          const nomeSpan = document.createElement("span");
-          nomeSpan.textContent = item;
-          nomeSpan.className = "item-nome";
-          itemNomeCheck.appendChild(checkbox);
-          itemNomeCheck.appendChild(nomeSpan);
+      // Itens da categoria (do localStorage)
+      if (!Array.isArray(savedState[categoria])) savedState[categoria] = [];
 
-          // Bloco quantidade e valor
-          const qtdValor = document.createElement("div");
-          qtdValor.className = "item-qtd-valor";
+      savedState[categoria].forEach((item, idx) => {
+        const li = criarItemElemento(categoria, item, idx);
+        lista.appendChild(li);
+      });
 
-          // Quantidade
-          const qtdBox = document.createElement("div");
-          qtdBox.className = "qtd-box";
-          const qtdLabel = document.createElement("span");
-          qtdLabel.textContent = "Qtd.";
-          qtdLabel.className = "qtd-label";
-          const inputQtd = document.createElement("input");
-          inputQtd.type = "number";
-          inputQtd.className = "quantidade";
-          inputQtd.min = "1";
-          inputQtd.value = savedState[item]?.quantidade || "1";
-          inputQtd.placeholder = "Qtd";
-          qtdBox.appendChild(qtdLabel);
-          qtdBox.appendChild(inputQtd);
+      card.appendChild(lista);
+      container.appendChild(card);
+    });
+  }
 
-          // Valor
-          const valorBox = document.createElement("div");
-          valorBox.className = "valor-box";
-          const valorLabel = document.createElement("span");
-          valorLabel.textContent = "Valor";
-          valorLabel.className = "valor-label";
-          const inputValor = document.createElement("input");
-          inputValor.type = "text";
-          inputValor.placeholder = "R$";
-          inputValor.className = "valor";
-          inputValor.value = savedState[item]?.valor || "";
-          valorBox.appendChild(valorLabel);
-          valorBox.appendChild(inputValor);
+  function criarItemElemento(categoria, item, idx) {
+    const li = document.createElement("li");
+    li.className = "item-catalogo";
 
-          qtdValor.appendChild(qtdBox);
-          qtdValor.appendChild(valorBox);
+    // Bloco nome/checkbox
+    const itemNomeCheck = document.createElement("div");
+    itemNomeCheck.className = "item-check-nome";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = item.checked || false;
 
-          // Atualiza estado e total
-          const atualizarItem = () => {
-            savedState[item] = {
-              checked: checkbox.checked,
-              valor: inputValor.value,
-              quantidade: inputQtd.value
-            };
-            localStorage.setItem("listaCompras", JSON.stringify(savedState));
-            atualizarTotal();
-            li.classList.toggle("checked", checkbox.checked);
-          };
+    // Input para nome do item
+    const nomeInput = document.createElement("input");
+    nomeInput.type = "text";
+    nomeInput.placeholder = "Nome do item";
+    nomeInput.value = item.nome || "";
+    nomeInput.className = "item-nome-input";
+    nomeInput.style.fontWeight = "500";
+    nomeInput.style.fontSize = "1rem";
+    nomeInput.style.color = "#2d2f3a";
+    nomeInput.style.border = "1px solid var(--input-border)";
+    nomeInput.style.borderRadius = "6px";
+    nomeInput.style.padding = "4px 6px";
+    nomeInput.style.background = "#fff";
+    nomeInput.style.minWidth = "0";
+    nomeInput.style.flex = "1 1 0";
+    nomeInput.style.marginLeft = "3px";
+    nomeInput.style.marginRight = "3px";
+    nomeInput.style.outline = "none";
+    nomeInput.addEventListener("focus", e => {
+      nomeInput.style.borderColor = "var(--primary)";
+    });
+    nomeInput.addEventListener("blur", e => {
+      nomeInput.style.borderColor = "var(--input-border)";
+    });
 
-          checkbox.addEventListener("change", atualizarItem);
-          inputValor.addEventListener("input", atualizarItem);
-          inputQtd.addEventListener("input", atualizarItem);
+    itemNomeCheck.appendChild(checkbox);
+    itemNomeCheck.appendChild(nomeInput);
 
-          if (checkbox.checked) li.classList.add("checked");
+    // Bloco quantidade e valor
+    const qtdValor = document.createElement("div");
+    qtdValor.className = "item-qtd-valor";
 
-          li.appendChild(itemNomeCheck);
-          li.appendChild(qtdValor);
+    // Quantidade
+    const qtdBox = document.createElement("div");
+    qtdBox.className = "qtd-box";
+    const qtdLabel = document.createElement("span");
+    qtdLabel.textContent = "Qtd.";
+    qtdLabel.className = "qtd-label";
+    const inputQtd = document.createElement("input");
+    inputQtd.type = "number";
+    inputQtd.className = "quantidade";
+    inputQtd.min = "1";
+    inputQtd.value = item.quantidade || "1";
+    inputQtd.placeholder = "Qtd";
+    qtdBox.appendChild(qtdLabel);
+    qtdBox.appendChild(inputQtd);
 
-          lista.appendChild(li);
-        });
+    // Valor
+    const valorBox = document.createElement("div");
+    valorBox.className = "valor-box";
+    const valorLabel = document.createElement("span");
+    valorLabel.textContent = "Valor";
+    valorLabel.className = "valor-label";
+    const inputValor = document.createElement("input");
+    inputValor.type = "text";
+    inputValor.placeholder = "R$";
+    inputValor.className = "valor";
+    inputValor.value = item.valor || "";
+    valorBox.appendChild(valorLabel);
+    valorBox.appendChild(inputValor);
 
-        card.appendChild(lista);
-        container.appendChild(card);
+    qtdValor.appendChild(qtdBox);
+    qtdValor.appendChild(valorBox);
+
+    // Botão remover item
+    const btnRemove = document.createElement("button");
+    btnRemove.textContent = "🗑️";
+    btnRemove.title = "Remover item";
+    btnRemove.style.background = "none";
+    btnRemove.style.border = "none";
+    btnRemove.style.cursor = "pointer";
+    btnRemove.style.fontSize = "1.1rem";
+    btnRemove.style.marginLeft = "9px";
+    btnRemove.style.marginTop = "2px";
+    btnRemove.addEventListener("click", () => {
+      if (confirm("Remover este item?")) {
+        savedState[categoria].splice(idx, 1);
+        salvarEAtualizar(true); // true: irá remontar o catálogo
       }
-    }
+    });
 
-    montarCatalogo();
+    // Atualiza estado e total (NÃO remonta catálogo ao editar!)
+    const atualizarItem = () => {
+      savedState[categoria][idx] = {
+        checked: checkbox.checked,
+        nome: nomeInput.value,
+        valor: inputValor.value,
+        quantidade: inputQtd.value
+      };
+      localStorage.setItem("listaCompras2", JSON.stringify(savedState));
+      atualizarTotal();
+      li.classList.toggle("checked", checkbox.checked);
+    };
+
+    checkbox.addEventListener("change", atualizarItem);
+    inputValor.addEventListener("input", atualizarItem);
+    inputQtd.addEventListener("input", atualizarItem);
+    nomeInput.addEventListener("input", atualizarItem);
+
+    if (checkbox.checked) li.classList.add("checked");
+
+    li.appendChild(itemNomeCheck);
+    li.appendChild(qtdValor);
+    li.appendChild(btnRemove);
+
+    return li;
+  }
+
+  function adicionarItem(categoria, nomePadrao = "") {
+    if (!Array.isArray(savedState[categoria])) savedState[categoria] = [];
+    savedState[categoria].push({
+      checked: false,
+      nome: nomePadrao,
+      valor: "",
+      quantidade: "1"
+    });
+    salvarEAtualizar(true); // true: irá remontar o catálogo
+  }
+
+  // Se for true, remonta o catálogo (após adicionar/remover). Se for falso/undefined, só atualiza total.
+  function salvarEAtualizar(remontar) {
+    localStorage.setItem("listaCompras2", JSON.stringify(savedState));
+    if (remontar) montarCatalogo();
     atualizarTotal();
+  }
 
-    document.getElementById("finalizar").addEventListener("click", () => {
-      if (confirm("Deseja finalizar a compra? Isso irá limpar a lista.")) {
-        localStorage.removeItem("listaCompras");
-        location.reload();
-      }
-    });
+  montarCatalogo();
+  atualizarTotal();
 
-    // Busca por item (filtra visualmente os itens das categorias)
-    document.getElementById("busca").addEventListener("input", e => {
-      const termo = e.target.value.trim().toLowerCase();
-      document.querySelectorAll(".categoria-card").forEach(card => {
-        let algumItemVisivel = false;
-        card.querySelectorAll(".item-catalogo").forEach(li => {
-          const nome = li.querySelector('.item-nome').textContent.toLowerCase();
-          const show = nome.includes(termo);
-          li.style.display = show ? "flex" : "none";
-          if (show) algumItemVisivel = true;
-        });
-        // Esconde a categoria se nenhum item aparecer
-        card.style.display = algumItemVisivel ? "flex" : "none";
+  document.getElementById("finalizar").addEventListener("click", () => {
+    if (confirm("Deseja finalizar a compra? Isso irá limpar a lista.")) {
+      localStorage.removeItem("listaCompras2");
+      location.reload();
+    }
+  });
+
+  // Busca por item (filtra visualmente os itens das categorias)
+  document.getElementById("busca").addEventListener("input", e => {
+    const termo = e.target.value.trim().toLowerCase();
+    document.querySelectorAll(".categoria-card").forEach(card => {
+      let algumItemVisivel = false;
+      card.querySelectorAll(".item-catalogo").forEach(li => {
+        const nomeInput = li.querySelector('.item-nome-input');
+        const nome = nomeInput ? nomeInput.value.toLowerCase() : "";
+        const show = nome.includes(termo);
+        li.style.display = show ? "flex" : "none";
+        if (show) algumItemVisivel = true;
       });
+      // Esconde a categoria se nenhum item aparecer
+      card.style.display = algumItemVisivel ? "flex" : "none";
     });
-  </script>
+  });
+</script>
 </body>
 </html>
