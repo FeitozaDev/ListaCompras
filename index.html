@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de Compras com Valores</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #3a7bd5;
+      --primary-dark: #274080;
+      --accent: #29c76f;
+      --accent-bg: #e6fbe9;
+      --danger: #e5383b;
+      --danger-dark: #b8282b;
+      --bg: #f3f6ff;
+      --surface: #fff;
+      --border: #e3e7ee;
+      --shadow: 0 4px 24px 0 rgba(58,123,213,0.12);
+      --radius: 14px;
+      --transition: 0.25s;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      padding: 0;
+      margin: 0;
+      font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(120deg, #f3f6ff 0%, #eaf3ff 100%);
+      min-height: 100vh;
+      color: #2d2f3a;
+      width: 100%;
+    }
+
+    body {
+      max-width: 880px;
+      margin: 32px auto 0 auto;
+      padding: 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      background: var(--bg);
+      min-width: 0;
+    }
+
+    h1 {
+      color: var(--primary);
+      font-size: 2.3rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 1.5px;
+      word-break: break-word;
+    }
+
+    h2 {
+      color: var(--primary-dark);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 18px 0 14px 0;
+      border-left: 4px solid var(--primary);
+      padding-left: 10px;
+      letter-spacing: 0.5px;
+      word-break: break-word;
+    }
+
+    #busca {
+      width: 100%;
+      max-width: 440px;
+      padding: 12px 16px 12px 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 30px;
+      background: #fff url('https://cdn.jsdelivr.net/gh/tabler/tabler-icons/icons/search.svg') 12px 50%/18px no-repeat;
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      box-shadow: 0 1px 6px rgba(58,123,213,0.06);
+    }
+    #busca:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px #3a7bd533;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 28px;
+      width: 100%;
+    }
+
+    .categoria {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 10px rgba(58,123,213,0.07);
+      padding: 20px 18px 12px 18px;
+      border-top: 4px solid var(--primary);
+      transition: background-color var(--transition), box-shadow var(--transition);
+      min-width: 0;
+      min-height: 0;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .categoria.selected {
+      background: #f3f9ff;
+      border-top: 4px solid var(--accent);
+      box-shadow: 0 4px 22px rgba(41,199,111,0.13);
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 9px;
+      gap: 12px;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 7px;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      transition: background 0.18s;
+      cursor: pointer;
+      min-width: 0;
+      width: 100%;
+      word-break: break-word;
+    }
+
+    label:last-child {
+      border-bottom: none;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.25);
+      accent-color: var(--primary);
+      margin-right: 7px;
+      cursor: pointer;
+    }
+
+    input.valor {
+      width: 74px;
+      padding: 7px 8px;
+      font-size: 1rem;
+      text-align: right;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: #f7fafc;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+      min-width: 0;
+    }
+
+    input.valor:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 2px #3a7bd533;
+      background: #fff;
+    }
+
+    #total {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 36px;
+      padding: 18px 24px;
+      background: var(--accent-bg);
+      border: 2px solid #b8eac8;
+      border-radius: 16px;
+      max-width: 340px;
+      box-shadow: 0 2px 10px rgba(41,199,111,0.08);
+      letter-spacing: 1px;
+      width: 100%;
+      box-sizing: border-box;
+      word-break: break-word;
+    }
+
+    #finalizar {
+      margin-top: 24px;
+      padding: 14px 35px;
+      font-size: 1.1rem;
+      background: linear-gradient(92deg, var(--danger) 75%, var(--danger-dark) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 10px rgba(229,56,59,0.12);
+      cursor: pointer;
+      transition: background var(--transition), box-shadow var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 350px;
+      justify-content: center;
+    }
+    #finalizar:hover {
+      background: linear-gradient(92deg, var(--danger-dark) 80%, var(--danger) 100%);
+      box-shadow: 0 6px 24px rgba(229,56,59,0.19);
+    }
+
+    /* Scrollbar bonito */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e3e7ee;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* RESPONSIVIDADE */
+    @media (max-width: 900px) {
+      body {
+        padding: 10px;
+      }
+      .container {
+        gap: 16px;
+      }
+      #total, #finalizar {
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      html, body {
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      body {
+        padding: 0 2vw;
+      }
+      .container {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .categoria {
+        padding: 13px 6px 7px 8px;
+        font-size: 0.98rem;
+      }
+      h1 {
+        font-size: 1.32rem;
+        margin-bottom: 12px;
+        padding-left: 4px;
+        padding-top: 10px;
+      }
+      h2 {
+        font-size: 1.07rem;
+        padding-left: 6px;
+        margin: 14px 0 10px 0;
+      }
+      label {
+        font-size: 0.96rem;
+        gap: 7px;
+        padding-bottom: 6px;
+      }
+      input.valor {
+        font-size: 0.97rem;
+        width: 60px;
+        padding: 5px 4px;
+      }
+      #busca {
+        font-size: 0.99rem;
+        padding: 10px 12px 10px 34px;
+        margin-bottom: 18px;
+        max-width: 100%;
+        background-size: 16px;
+      }
+      #total {
+        font-size: 1.08rem;
+        padding: 10px 8px;
+        margin-top: 15px;
+        border-radius: 12px;
+      }
+      #finalizar {
+        margin-top: 13px;
+        padding: 11px 0;
+        font-size: 1rem;
+        border-radius: 22px;
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .categoria {
+        padding: 7px 0 5px 2px;
+      }
+      h1 {
+        font-size: 1.07rem;
+      }
+      h2 {
+        font-size: 0.99rem;
+      }
+      label {
+        font-size: 0.91rem;
+      }
+      input.valor {
+        font-size: 0.95rem;
+        width: 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🛒 Lista de Compras</h1>
+  <input type="text" id="busca" placeholder="Buscar item...">
+  <div class="container" id="lista-container"></div>
+  <div id="total">Total: R$ 0,00</div>
+  <button id="finalizar">Finalizar Compra 🧾</button>
+
+  <script>
+    const categorias = {
+      "Mercearia": ["Arroz", "Feijão", "Óleo", "Açúcar", "Café", "Molho de tomate", "Macarrão", "Milho", "Tapioca", "Ketchup", "Maionese", "Cuscuz", ""],
+      "Proteínas": ["Peito de Frango", "Sobrecoxa", "Moela", "Coração", "Músculo", "Coxão Mole", "Patinho", "File Suino", "Lombo Suino", "Sardinha"],
+      "Laticínios": ["Leite", "Manteiga Light", "Iogurte", "Queijo", "Requeijão Light", "Creme de leite", "Leite Condensado"],
+      "Higiene": ["Barbeador", "Creme dental", "Desodorante", "Escova de dente", "Fio dental", "Papel higiênico", "Sabonete", "Shampoo", "Cotonete"],
+      "Limpeza": ["Água Sanitária", "Álcool", "Amaciante", "Desinfetante", "Detergente", "Esponja de pia", "Sabão em pó", "Sacos de lixo"],
+      "Frutas": ["Morango", "Uva", "Kiwi", "Abacaxi", "Melancia", "Pera", "Banana", "Maçã", "Ameixa", "Laranja", "Manga", "Mamão", "Melão"],
+      "Legumes": ["Alface", "Batata", "Cebola", "Cenoura", "Tomate", "Brocolis", "Abobrinha", "Batata Doce", "Pimentão", "Alho"]
+    };
+
+    const container = document.getElementById("lista-container");
+    const totalDisplay = document.getElementById("total");
+    const savedState = JSON.parse(localStorage.getItem("listaCompras")) || {};
+
+    function formatarValor(numero) {
+      return numero.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function atualizarTotal() {
+      let total = 0;
+      for (const item in savedState) {
+        if (savedState[item].checked) {
+          let rawValor = savedState[item].valor?.toString().replace(",", ".") || "0";
+          let valor = parseFloat(rawValor);
+          if (!isNaN(valor)) total += valor;
+        }
+      }
+      totalDisplay.textContent = `Total: ${formatarValor(total)}`;
+      destacarCategorias();
+    }
+
+    function destacarCategorias() {
+      document.querySelectorAll(".categoria").forEach(section => {
+        const checkboxes = section.querySelectorAll("input[type='checkbox']");
+        const algumMarcado = [...checkboxes].some(cb => cb.checked);
+        section.classList.toggle("selected", algumMarcado);
+      });
+    }
+
+    for (let categoria in categorias) {
+      const section = document.createElement("div");
+      section.className = "categoria";
+      const h2 = document.createElement("h2");
+      h2.textContent = categoria;
+      section.appendChild(h2);
+
+      categorias[categoria].forEach(item => {
+        if (!item) return;
+
+        const label = document.createElement("label");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = savedState[item]?.checked || false;
+
+        const inputValor = document.createElement("input");
+        inputValor.type = "text";
+        inputValor.placeholder = "R$";
+        inputValor.className = "valor";
+        inputValor.value = savedState[item]?.valor || "";
+
+        const atualizarItem = () => {
+          savedState[item] = {
+            checked: checkbox.checked,
+            valor: inputValor.value
+          };
+          localStorage.setItem("listaCompras", JSON.stringify(savedState));
+          atualizarTotal();
+        };
+
+        checkbox.addEventListener("change", atualizarItem);
+        inputValor.addEventListener("input", atualizarItem);
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(item));
+        label.appendChild(inputValor);
+        section.appendChild(label);
+      });
+
+      container.appendChild(section);
+    }
+
+    atualizarTotal();
+
+    document.getElementById("finalizar").addEventListener("click", () => {
+      if (confirm("Deseja finalizar a compra? Isso irá limpar a lista.")) {
+        localStorage.removeItem("listaCompras");
+        location.reload();
+      }
+    });
+
+    document.getElementById("busca").addEventListener("input", e => {
+      const termo = e.target.value.toLowerCase();
+      document.querySelectorAll(".categoria label").forEach(label => {
+        const texto = label.textContent.toLowerCase();
+        label.style.display = texto.includes(termo) ? "flex" : "none";
+      });
+    });
+  </script>
+</body>
+</html>
